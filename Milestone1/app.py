@@ -1,5 +1,5 @@
 """
-app.py — Infosys Springboard Internship 7.0, Milestone 1
+app.py — Infosys Springboard Virtual Internship 7.0, Milestone 1
 User Authentication Module (Streamlit + JWT + Gmail OTP)
 
 Secrets expected as environment variables (set these from Colab Secrets
@@ -50,28 +50,116 @@ SECURITY_QUESTIONS = [
 
 db.init_db()
 
+# Force a light theme explicitly — without this, Streamlit falls back to
+# each viewer's system theme (often dark), which breaks custom CSS that
+# assumes a light background and makes text/labels invisible.
+os.makedirs(".streamlit", exist_ok=True)
+with open(".streamlit/config.toml", "w") as f:
+    f.write(
+        '[theme]\n'
+        'base="light"\n'
+        'primaryColor="#7c5cff"\n'
+        'backgroundColor="#f6f5ff"\n'
+        'secondaryBackgroundColor="#ffffff"\n'
+        'textColor="#1e1b34"\n'
+    )
+
 st.set_page_config(page_title="Infosys Portal", page_icon="⚡", layout="centered")
 
 COLORS = {
-    "bg_main": "#f9fcfc", "bg_card": "#ffffff", "bg_card_alt": "#bae8e8",
-    "text_main": "#2d334a", "text_heading": "#272343", "text_muted": "#64748b",
-    "accent": "#ffd803", "accent_hover": "#e6c300", "accent_text": "#272343",
-    "border": "#272343", "border_light": "#bae8e8", "danger": "#f87171",
+    "bg_main": "#f6f5ff", "bg_card": "#ffffff", "bg_card_alt": "#eee9ff",
+    "text_main": "#1e1b34", "text_heading": "#1e1b34", "text_muted": "#6b6785",
+    "accent": "#7c5cff", "accent_hover": "#6a4ce0", "accent_text": "#ffffff",
+    "border": "#e2defa", "border_strong": "#7c5cff", "danger": "#e0455f",
+    "success": "#1fae6e",
 }
 
 st.markdown(f"""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&family=Inter:wght@400;500;600&display=swap');
-    html, body, .stApp {{ background:{COLORS['bg_main']} !important; font-family:'Inter',sans-serif !important; color:{COLORS['text_main']} !important; }}
-    h1,h2,h3,h4 {{ font-family:'Poppins',sans-serif !important; color:{COLORS['text_heading']} !important; }}
-    div[data-baseweb="input"] {{ background:{COLORS['bg_card']} !important; border:2px solid {COLORS['border']} !important; border-radius:10px !important; }}
-    div[data-testid="stButton"] button {{
-        background:{COLORS['accent']} !important; color:{COLORS['accent_text']} !important;
-        border:2px solid {COLORS['border']} !important; border-radius:10px !important;
-        font-weight:700 !important; box-shadow:4px 4px 0px {COLORS['border']} !important; width:100%;
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+    html, body, .stApp {{
+        background: linear-gradient(180deg, #f6f5ff 0%, #eef0fb 100%) !important;
+        font-family: 'Inter', sans-serif !important;
+        color: {COLORS['text_main']} !important;
     }}
-    div[data-testid="stButton"] button:hover {{ background:{COLORS['accent_hover']} !important; }}
-    .pn-card {{ background:{COLORS['bg_card']}; border:2px solid {COLORS['border']}; border-radius:14px; padding:24px; box-shadow:4px 4px 0px {COLORS['border_light']}; }}
+    #MainMenu, footer, header {{ visibility: hidden; }}
+    .block-container {{ padding-top: 2rem !important; max-width: 620px; }}
+
+    h1, h2, h3, h4 {{ font-family: 'Poppins', sans-serif !important; color: {COLORS['text_heading']} !important; }}
+
+    /* Labels above inputs — force dark, visible text regardless of theme */
+    label, label p, label span, .stMarkdown p {{
+        color: {COLORS['text_heading']} !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+    }}
+
+    /* Text inputs & selects — white surface, dark readable text, always */
+    div[data-baseweb="input"], div[data-baseweb="select"] > div, div[data-baseweb="base-input"] {{
+        background: {COLORS['bg_card']} !important;
+        border: 1.5px solid {COLORS['border']} !important;
+        border-radius: 12px !important;
+        box-shadow: none !important;
+    }}
+    div[data-baseweb="input"]:focus-within, div[data-baseweb="select"] > div:focus-within {{
+        border-color: {COLORS['border_strong']} !important;
+        box-shadow: 0 0 0 3px rgba(124,92,255,0.15) !important;
+    }}
+    input, textarea, div[data-baseweb="select"] span, div[data-baseweb="select"] div {{
+        color: {COLORS['text_main']} !important;
+        -webkit-text-fill-color: {COLORS['text_main']} !important;
+        background: transparent !important;
+        font-size: 15px !important;
+    }}
+    input::placeholder {{ color: {COLORS['text_muted']} !important; opacity: 1 !important; }}
+
+    /* Tabs */
+    button[data-baseweb="tab"] {{ color: {COLORS['text_muted']} !important; font-weight: 600 !important; }}
+    button[data-baseweb="tab"][aria-selected="true"] {{ color: {COLORS['accent']} !important; }}
+    div[data-baseweb="tab-highlight"] {{ background-color: {COLORS['accent']} !important; }}
+
+    /* Radio buttons */
+    div[role="radiogroup"] label p {{ color: {COLORS['text_main']} !important; font-weight: 500 !important; }}
+
+    /* Primary action buttons */
+    div[data-testid="stButton"] button {{
+        background: linear-gradient(135deg, {COLORS['accent']} 0%, #9b7bff 100%) !important;
+        color: {COLORS['accent_text']} !important;
+        border: none !important;
+        border-radius: 12px !important;
+        font-weight: 700 !important;
+        font-size: 15px !important;
+        height: 46px !important;
+        width: 100%;
+        box-shadow: 0 4px 14px rgba(124,92,255,0.35) !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+    }}
+    div[data-testid="stButton"] button:hover {{
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 18px rgba(124,92,255,0.45) !important;
+    }}
+    div[data-testid="stButton"] button p {{ color: {COLORS['accent_text']} !important; }}
+
+    .pn-card {{
+        background: {COLORS['bg_card']};
+        border: 1.5px solid {COLORS['border']};
+        border-radius: 18px;
+        padding: 28px;
+        box-shadow: 0 10px 30px rgba(30,27,52,0.06);
+    }}
+    .pn-hero {{ text-align: center; padding: 8px 0 20px; }}
+    .pn-hero .logo {{
+        width: 60px; height: 60px; border-radius: 16px; margin: 0 auto 12px;
+        background: linear-gradient(135deg, {COLORS['accent']} 0%, #9b7bff 100%);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 28px; box-shadow: 0 8px 20px rgba(124,92,255,0.35);
+    }}
+    .pn-hero h1 {{ font-size: 1.7rem !important; margin: 0; }}
+    .pn-hero p {{ color: {COLORS['text_muted']}; font-size: 13px; margin: 4px 0 0; }}
+    .pn-subtitle {{ text-align:center; font-weight:700; font-size:1.1rem; margin-bottom:18px; color:{COLORS['text_heading']}; }}
+
+    .stAlert {{ border-radius: 12px !important; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -224,12 +312,12 @@ def logout():
 
 def header(title, subtitle=""):
     st.markdown(f"""
-    <div style="text-align:center;padding:1rem 0;">
-        <div style="font-size:36px;">⚡</div>
-        <h1 style="margin:0;font-size:1.8rem !important;">Infosys Portal</h1>
-        <p style="color:{COLORS['text_muted']};font-size:13px;">{subtitle}</p>
+    <div class="pn-hero">
+        <div class="logo">⚡</div>
+        <h1>Infosys Portal</h1>
+        <p>{subtitle or "Secure. Simple. Yours."}</p>
     </div>
-    <h3 style="text-align:center;">{title}</h3>
+    <div class="pn-subtitle">{title}</div>
     """, unsafe_allow_html=True)
 
 
@@ -247,8 +335,8 @@ if not st.session_state.token:
         tab_user, tab_admin = st.tabs(["User Login", "Admin Login"])
 
         with tab_user:
-            uid = st.text_input("Username or Email", key="login_uid")
-            pwd = st.text_input("Password", type="password", key="login_pwd")
+            uid = st.text_input("Username or Email", key="login_uid", placeholder="you@infosys.com")
+            pwd = st.text_input("Password", type="password", key="login_pwd", placeholder="••••••••")
             if st.button("Sign In →", key="login_btn"):
                 missing = require_fields(**{"Username/Email": uid, "Password": pwd})
                 if missing:
@@ -270,8 +358,8 @@ if not st.session_state.token:
                 goto("Forgot")
 
         with tab_admin:
-            a_user = st.text_input("Admin Username", key="admin_uid")
-            a_pwd = st.text_input("Admin Password", type="password", key="admin_pwd")
+            a_user = st.text_input("Admin Username", key="admin_uid", placeholder="admin")
+            a_pwd = st.text_input("Admin Password", type="password", key="admin_pwd", placeholder="••••••••")
             if st.button("Admin Sign In →", key="admin_login_btn"):
                 if a_user == ADMIN_USERNAME and a_pwd == ADMIN_PASSWORD:
                     st.session_state.token = make_session_jwt(ADMIN_USERNAME, "admin")
@@ -283,12 +371,13 @@ if not st.session_state.token:
     # ---------------- SIGNUP ----------------
     elif st.session_state.page == "Signup":
         header("Create an account", "Join Infosys Portal")
-        uname = st.text_input("Username")
-        email = st.text_input("Email address")
-        pwd = st.text_input("Password", type="password", help="Min 8 chars, upper, lower, number, symbol")
-        cpwd = st.text_input("Confirm Password", type="password")
+        uname = st.text_input("Username", placeholder="jane_doe")
+        email = st.text_input("Email address", placeholder="you@infosys.com")
+        pwd = st.text_input("Password", type="password", placeholder="Min. 8 characters",
+                             help="Min 8 chars, upper, lower, number, symbol")
+        cpwd = st.text_input("Confirm Password", type="password", placeholder="Re-enter password")
         sq = st.selectbox("Security Question", SECURITY_QUESTIONS)
-        sa = st.text_input("Security Answer")
+        sa = st.text_input("Security Answer", placeholder="Your answer")
 
         if st.button("Create Account →"):
             missing = require_fields(
@@ -323,7 +412,7 @@ if not st.session_state.token:
             method = st.radio("Verification method", ["Security Question", "Email OTP"], horizontal=True)
 
             if method == "Security Question":
-                uname = st.text_input("Username")
+                uname = st.text_input("Username", placeholder="jane_doe")
                 if st.button("Continue →"):
                     if not uname.strip():
                         st.error("⚠️ Username is required.")
@@ -337,7 +426,7 @@ if not st.session_state.token:
                         else:
                             st.error("❌ No account found with that username.")
             else:
-                email = st.text_input("Registered email address")
+                email = st.text_input("Registered email address", placeholder="you@infosys.com")
                 if st.button("Send OTP →"):
                     if not email.strip():
                         st.error("⚠️ Email is required.")
@@ -364,7 +453,7 @@ if not st.session_state.token:
             if st.session_state.forgot_method == "sq":
                 q = db.get_security_question(st.session_state.forgot_username)
                 st.info(f"❓ {q}")
-                ans = st.text_input("Your answer")
+                ans = st.text_input("Your answer", placeholder="Type your answer")
                 if st.button("Verify →"):
                     if not ans.strip():
                         st.error("⚠️ Answer is required.")
@@ -375,7 +464,7 @@ if not st.session_state.token:
                         st.error("❌ Incorrect answer.")
             else:
                 st.info(f"📧 Code sent to {st.session_state.forgot_email} (valid {OTP_EXPIRY_MINUTES} min).")
-                otp_in = st.text_input("6-digit OTP", max_chars=6)
+                otp_in = st.text_input("6-digit OTP", max_chars=6, placeholder="e.g. 849201")
                 if st.button("Verify →"):
                     if not otp_in.strip():
                         st.error("⚠️ OTP is required.")
@@ -388,8 +477,8 @@ if not st.session_state.token:
                             st.error("❌ " + msg)
 
         elif st.session_state.forgot_stage == "reset":
-            npw = st.text_input("New Password", type="password")
-            cnpw = st.text_input("Confirm New Password", type="password")
+            npw = st.text_input("New Password", type="password", placeholder="Min. 8 characters")
+            cnpw = st.text_input("Confirm New Password", type="password", placeholder="Re-enter new password")
             if st.button("Update Password →"):
                 missing = require_fields(**{"New Password": npw, "Confirm Password": cnpw})
                 if missing:
