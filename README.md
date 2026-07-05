@@ -66,15 +66,4 @@ with all secrets kept out of the codebase.
    defined as a constant at the top of `app.py` — change it before any
    real deployment.
 
-## Screenshots
 
-_Add screenshots to a `screenshots/` folder inside this directory and
-reference them below:_
-
-- Login — `screenshots/login.png`
-- Signup — `screenshots/signup.png`
-- Forgot Password (Security Question) — `screenshots/forgot_sq.png`
-- Forgot Password (OTP) — `screenshots/forgot_otp.png`
-- OTP email received — `screenshots/otp_email.png`
-- User Dashboard — `screenshots/user_dashboard.png`
-- Admin Dashboard — `screenshots/admin_dashboard.png`
