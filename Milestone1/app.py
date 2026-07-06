@@ -2,15 +2,6 @@
 app.py — Infosys Springboard Internship 7.0, Milestone 1
 User Authentication Module (Streamlit + JWT + Gmail OTP)
 
-Secrets expected as environment variables (set these from Colab Secrets
-before launching this app — see the notebook launch cell):
-    JWT_SECRET      -> signs session + OTP tokens
-    EMAIL_ADDRESS   -> Gmail address that sends OTP mail
-    EMAIL_PASSWORD  -> the 16-character Gmail App Password
-
-Admin login is separate from the signup system (Step 11): the admin
-credentials are constants below, not a row in the users table.
-CHANGE THESE before you ever deploy this somewhere real.
 """
 
 import os
