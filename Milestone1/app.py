@@ -1,5 +1,5 @@
 """
-app.py — Infosys Springboard Virtual Internship 7.0, Milestone 1
+app.py — Infosys Springboard Internship 7.0, Milestone 1
 User Authentication Module (Streamlit + JWT + Gmail OTP)
 
 Secrets expected as environment variables (set these from Colab Secrets
@@ -84,7 +84,7 @@ st.markdown(f"""
         color: {COLORS['text_main']} !important;
     }}
     #MainMenu, footer, header {{ visibility: hidden; }}
-    .block-container {{ padding-top: 2rem !important; max-width: 620px; }}
+    .block-container {{ padding-top: 2rem !important; max-width: 760px; }}
 
     h1, h2, h3, h4 {{ font-family: 'Poppins', sans-serif !important; color: {COLORS['text_heading']} !important; }}
 
@@ -141,6 +141,30 @@ st.markdown(f"""
     }}
     div[data-testid="stButton"] button p {{ color: {COLORS['accent_text']} !important; }}
 
+    /* Secondary / ghost buttons — any container whose key starts with "secondary" */
+    div[class*="st-key-secondary"] div[data-testid="stButton"] button {{
+        background: {COLORS['bg_card']} !important;
+        color: {COLORS['accent']} !important;
+        border: 1.5px solid {COLORS['accent']} !important;
+        box-shadow: none !important;
+    }}
+    div[class*="st-key-secondary"] div[data-testid="stButton"] button p {{ color: {COLORS['accent']} !important; }}
+    div[class*="st-key-secondary"] div[data-testid="stButton"] button:hover {{
+        background: {COLORS['bg_card_alt']} !important;
+        transform: none !important;
+    }}
+
+    /* Muted / plain-link style buttons (e.g. Cancel, Back) */
+    div[class*="st-key-ghost"] div[data-testid="stButton"] button {{
+        background: transparent !important;
+        color: {COLORS['text_muted']} !important;
+        border: none !important;
+        box-shadow: none !important;
+        font-weight: 600 !important;
+    }}
+    div[class*="st-key-ghost"] div[data-testid="stButton"] button p {{ color: {COLORS['text_muted']} !important; }}
+    div[class*="st-key-ghost"] div[data-testid="stButton"] button:hover {{ color: {COLORS['accent']} !important; }}
+
     .pn-card {{
         background: {COLORS['bg_card']};
         border: 1.5px solid {COLORS['border']};
@@ -158,6 +182,54 @@ st.markdown(f"""
     .pn-hero h1 {{ font-size: 1.7rem !important; margin: 0; }}
     .pn-hero p {{ color: {COLORS['text_muted']}; font-size: 13px; margin: 4px 0 0; }}
     .pn-subtitle {{ text-align:center; font-weight:700; font-size:1.1rem; margin-bottom:18px; color:{COLORS['text_heading']}; }}
+
+    /* Dashboard banner */
+    .dash-banner {{
+        background: linear-gradient(120deg, #1e1b34 0%, #3a2f6b 100%);
+        border-radius: 20px;
+        padding: 26px 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 26px;
+        box-shadow: 0 14px 34px rgba(30,27,52,0.25);
+    }}
+    .dash-banner h2 {{ color: #ffffff !important; margin: 0; font-size: 1.4rem !important; }}
+    .dash-banner .sub {{ color: #cfc9ff; font-size: 12.5px; margin-top: 2px; }}
+    .dash-avatar {{
+        width: 42px; height: 42px; border-radius: 50%;
+        background: linear-gradient(135deg, {COLORS['accent']} 0%, #9b7bff 100%);
+        color: #fff; display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 16px; flex-shrink: 0;
+    }}
+    .dash-pill {{
+        display: flex; align-items: center; gap: 10px;
+        background: rgba(255,255,255,0.08); padding: 6px 16px 6px 6px;
+        border-radius: 30px;
+    }}
+    .dash-pill span {{ color: #fff; font-weight: 600; font-size: 14px; }}
+
+    /* Stat cards */
+    .stat-card {{
+        background: {COLORS['bg_card']}; border: 1.5px solid {COLORS['border']};
+        border-radius: 16px; padding: 18px; text-align: center;
+        box-shadow: 0 6px 18px rgba(30,27,52,0.05);
+    }}
+    .stat-card .icon {{ font-size: 22px; margin-bottom: 6px; }}
+    .stat-card .val {{ font-size: 22px; font-weight: 800; color: {COLORS['text_heading']}; }}
+    .stat-card .lbl {{ font-size: 11.5px; color: {COLORS['text_muted']}; font-weight: 600; margin-top: 2px; }}
+
+    /* Sidebar */
+    section[data-testid="stSidebar"] {{ background: #ffffff !important; border-right: 1px solid {COLORS['border']} !important; }}
+    .sb-profile {{ text-align:center; padding: 10px 0 18px; }}
+    .sb-avatar {{
+        width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 10px;
+        background: linear-gradient(135deg, {COLORS['accent']} 0%, #9b7bff 100%);
+        display:flex; align-items:center; justify-content:center; color:#fff;
+        font-weight:800; font-size:20px; box-shadow: 0 8px 18px rgba(124,92,255,0.3);
+    }}
+    .sb-name {{ font-weight: 700; color: {COLORS['text_heading']}; font-size: 15px; }}
+    .sb-role {{ font-size: 11.5px; color: {COLORS['text_muted']}; text-transform: uppercase; letter-spacing: 0.5px; }}
 
     .stAlert {{ border-radius: 12px !important; }}
 </style>
@@ -351,11 +423,13 @@ if not st.session_state.token:
                         # Deliberately generic — never reveal which field was wrong.
                         st.error("❌ Invalid username/email or password.")
 
-            c1, c2 = st.columns(2)
-            if c1.button("Create Account", key="to_signup"):
-                goto("Signup")
-            if c2.button("Forgot Password", key="to_forgot"):
-                goto("Forgot")
+            st.write("")
+            with st.container(key="secondary_login_actions"):
+                c1, c2 = st.columns(2)
+                if c1.button("Create Account", key="to_signup"):
+                    goto("Signup")
+                if c2.button("Forgot Password", key="to_forgot"):
+                    goto("Forgot")
 
         with tab_admin:
             a_user = st.text_input("Admin Username", key="admin_uid", placeholder="admin")
@@ -401,17 +475,50 @@ if not st.session_state.token:
                 else:
                     st.error("❌ " + message)
 
-        if st.button("← Back to Sign In"):
-            goto("Login")
+        with st.container(key="ghost_back_signup"):
+            if st.button("← Back to Sign In"):
+                goto("Login")
 
     # ---------------- FORGOT PASSWORD ----------------
     elif st.session_state.page == "Forgot":
         header("Reset your password", "Choose a verification method")
 
         if st.session_state.forgot_stage == "start":
-            method = st.radio("Verification method", ["Security Question", "Email OTP"], horizontal=True)
+            if not st.session_state.forgot_method:
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.markdown(f"""
+                    <div class="pn-card" style="text-align:center;min-height:150px;">
+                        <div style="font-size:30px;">🔑</div>
+                        <b>Security Question</b>
+                        <p style="color:{COLORS['text_muted']};font-size:13px;">Answer the question you set at signup</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    if st.button("Use Security Question", key="pick_sq"):
+                        st.session_state.forgot_method = "sq"
+                        st.rerun()
+                with c2:
+                    st.markdown(f"""
+                    <div class="pn-card" style="text-align:center;min-height:150px;">
+                        <div style="font-size:30px;">📧</div>
+                        <b>Email OTP</b>
+                        <p style="color:{COLORS['text_muted']};font-size:13px;">Get a 6-digit code sent to your inbox</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    if st.button("Use Email OTP", key="pick_otp"):
+                        if not EMAIL_ADDRESS or not EMAIL_PASSWORD:
+                            st.error(
+                                "❌ Email OTP isn't configured on this server yet — "
+                                "`EMAIL_ADDRESS` / `EMAIL_PASSWORD` aren't set. "
+                                "Add them to Colab Secrets and make sure the launch "
+                                "cell passes them to the Streamlit subprocess as "
+                                "environment variables."
+                            )
+                        else:
+                            st.session_state.forgot_method = "otp"
+                            st.rerun()
 
-            if method == "Security Question":
+            elif st.session_state.forgot_method == "sq":
                 uname = st.text_input("Username", placeholder="jane_doe")
                 if st.button("Continue →"):
                     if not uname.strip():
@@ -420,12 +527,16 @@ if not st.session_state.token:
                         q = db.get_security_question(uname.strip())
                         if q:
                             st.session_state.forgot_username = uname.strip()
-                            st.session_state.forgot_method = "sq"
                             st.session_state.forgot_stage = "verify"
                             st.rerun()
                         else:
                             st.error("❌ No account found with that username.")
-            else:
+                with st.container(key="ghost_back_sq"):
+                    if st.button("← Choose a different method", key="back_from_sq"):
+                        st.session_state.forgot_method = None
+                        st.rerun()
+
+            else:  # otp
                 email = st.text_input("Registered email address", placeholder="you@infosys.com")
                 if st.button("Send OTP →"):
                     if not email.strip():
@@ -441,13 +552,16 @@ if not st.session_state.token:
                         if ok:
                             st.session_state.forgot_email = email.strip().lower()
                             st.session_state.otp_token = make_otp_token(email.strip().lower(), otp)
-                            st.session_state.forgot_method = "otp"
                             st.session_state.forgot_stage = "verify"
-                            st.success("✅ OTP sent — check your inbox.")
+                            st.success("✅ OTP sent — check your inbox (and spam folder).")
                             time.sleep(1)
                             st.rerun()
                         else:
-                            st.error("❌ " + msg)
+                            st.error(f"❌ Couldn't send the OTP. Details: {msg}")
+                with st.container(key="ghost_back_otp"):
+                    if st.button("← Choose a different method", key="back_from_otp"):
+                        st.session_state.forgot_method = None
+                        st.rerun()
 
         elif st.session_state.forgot_stage == "verify":
             if st.session_state.forgot_method == "sq":
@@ -498,10 +612,11 @@ if not st.session_state.token:
                     st.session_state.forgot_method = None
                     goto("Login")
 
-        if st.button("← Cancel"):
-            st.session_state.forgot_stage = "start"
-            st.session_state.forgot_method = None
-            goto("Login")
+        with st.container(key="ghost_cancel"):
+            if st.button("← Cancel"):
+                st.session_state.forgot_stage = "start"
+                st.session_state.forgot_method = None
+                goto("Login")
 
 # ════════════════════════════════════════════════════════════════
 # LOGGED-IN ROUTES
@@ -513,27 +628,88 @@ else:
 
     role = payload.get("role")
     who = payload.get("sub")
+    initials = "".join([w[0] for w in who.replace(".", " ").replace("_", " ").split()][:2]).upper() or who[:2].upper()
 
     with st.sidebar:
-        st.markdown(f"### ⚡ Infosys Portal\n**{'Admin' if role == 'admin' else who}**")
+        st.markdown(f"""
+        <div class="sb-profile">
+            <div class="sb-avatar">{initials}</div>
+            <div class="sb-name">{'Administrator' if role == 'admin' else who}</div>
+            <div class="sb-role">{'Admin access' if role == 'admin' else 'Member'}</div>
+        </div>
+        <hr style="border-color:{COLORS['border']};margin:14px 0;">
+        """, unsafe_allow_html=True)
+        st.markdown("### ⚡ Infosys Portal")
         if st.button("Logout"):
             logout()
 
     if role == "admin":
-        st.title("🛡️ Admin Dashboard")
-        st.caption("All registered users — passwords are never shown.")
+        st.markdown(f"""
+        <div class="dash-banner">
+            <div>
+                <h2>🛡️ Admin Dashboard</h2>
+                <div class="sub">Everyone who has registered — passwords are never shown here</div>
+            </div>
+            <div class="dash-pill">
+                <div class="dash-avatar">{initials}</div>
+                <span>Administrator</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
         users = db.list_all_users()
+        c1, c2 = st.columns(2)
+        c1.markdown(f"""<div class="stat-card">
+            <div class="icon">👥</div>
+            <div class="val">{len(users)}</div>
+            <div class="lbl">REGISTERED USERS</div>
+        </div>""", unsafe_allow_html=True)
+        c2.markdown(f"""<div class="stat-card">
+            <div class="icon">🟢</div>
+            <div class="val">Active</div>
+            <div class="lbl">SYSTEM STATUS</div>
+        </div>""", unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
         if users:
-            st.table(
-                [{"Username": u, "Email": e, "Joined (UTC)": c} for u, e, c in users]
+            st.dataframe(
+                [{"Username": u, "Email": e, "Joined (UTC)": c} for u, e, c in users],
+                use_container_width=True, hide_index=True,
             )
         else:
             st.info("No users have registered yet.")
     else:
-        st.title(f"👋 Welcome, {who}!")
+        st.markdown(f"""
+        <div class="dash-banner">
+            <div>
+                <h2>👋 Welcome, {who}!</h2>
+                <div class="sub">Here's your account overview</div>
+            </div>
+            <div class="dash-pill">
+                <div class="dash-avatar">{initials}</div>
+                <span>{who}</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        c1, c2, c3 = st.columns(3)
+        for col, icon, label, value in [
+            (c1, "🔐", "Session", "Active"),
+            (c2, "⏱️", "Valid for", f"{SESSION_HOURS}h"),
+            (c3, "🛡️", "Auth type", "JWT"),
+        ]:
+            col.markdown(f"""
+            <div class="stat-card">
+                <div class="icon">{icon}</div>
+                <div class="val">{value}</div>
+                <div class="lbl">{label.upper()}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
         st.markdown(f"""
         <div class="pn-card">
-            <p>You're securely logged in via a JWT session token.</p>
-            <p style="color:{COLORS['text_muted']};font-size:13px;">Session valid for {SESSION_HOURS} hours.</p>
+            <p style="margin:0;">You're securely logged in via a signed JWT session token.
+            Nothing about your password is stored anywhere except as a one-way hash.</p>
         </div>
         """, unsafe_allow_html=True)
