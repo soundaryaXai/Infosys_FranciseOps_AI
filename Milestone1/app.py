@@ -2,6 +2,15 @@
 app.py — Infosys Springboard Internship 7.0, Milestone 1
 User Authentication Module (Streamlit + JWT + Gmail OTP)
 
+Secrets expected as environment variables (set these from Colab Secrets
+before launching this app — see the notebook launch cell):
+    JWT_SECRET      -> signs session + OTP tokens
+    EMAIL_ADDRESS   -> Gmail address that sends OTP mail
+    EMAIL_PASSWORD  -> the 16-character Gmail App Password
+
+Admin login is separate from the signup system (Step 11): the admin
+credentials are constants below, not a row in the users table.
+CHANGE THESE before you ever deploy this somewhere real.
 """
 
 import os
@@ -121,14 +130,20 @@ st.markdown(f"""
         border-radius: 12px !important;
         font-weight: 700 !important;
         font-size: 15px !important;
+        letter-spacing: 0.2px !important;
         height: 46px !important;
         width: 100%;
         box-shadow: 0 4px 14px rgba(124,92,255,0.35) !important;
-        transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease !important;
     }}
     div[data-testid="stButton"] button:hover {{
         transform: translateY(-2px) !important;
-        box-shadow: 0 6px 18px rgba(124,92,255,0.45) !important;
+        box-shadow: 0 8px 22px rgba(124,92,255,0.45) !important;
+        filter: brightness(1.04) !important;
+    }}
+    div[data-testid="stButton"] button:active {{
+        transform: translateY(0px) scale(0.98) !important;
+        box-shadow: 0 3px 10px rgba(124,92,255,0.35) !important;
     }}
     div[data-testid="stButton"] button p {{ color: {COLORS['accent_text']} !important; }}
 
@@ -221,6 +236,44 @@ st.markdown(f"""
     }}
     .sb-name {{ font-weight: 700; color: {COLORS['text_heading']}; font-size: 15px; }}
     .sb-role {{ font-size: 11.5px; color: {COLORS['text_muted']}; text-transform: uppercase; letter-spacing: 0.5px; }}
+
+    /* Admin user table */
+    .u-table {{
+        background: {COLORS['bg_card']}; border: 1.5px solid {COLORS['border']};
+        border-radius: 16px; overflow: hidden; box-shadow: 0 6px 18px rgba(30,27,52,0.05);
+    }}
+    .u-row {{
+        display: flex; align-items: center; gap: 14px; padding: 14px 20px;
+        border-bottom: 1px solid {COLORS['border']};
+    }}
+    .u-row:last-child {{ border-bottom: none; }}
+    .u-row:hover {{ background: {COLORS['bg_card_alt']}; }}
+    .u-avatar {{
+        width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+        background: linear-gradient(135deg, {COLORS['accent']} 0%, #9b7bff 100%);
+        color: #fff; display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 13px;
+    }}
+    .u-name {{ font-weight: 700; color: {COLORS['text_heading']}; font-size: 14px; }}
+    .u-email {{ font-size: 12.5px; color: {COLORS['text_muted']}; }}
+    .u-joined {{
+        margin-left: auto; font-size: 11px; color: {COLORS['accent']}; font-weight: 700;
+        background: {COLORS['bg_card_alt']}; padding: 4px 10px; border-radius: 20px; white-space: nowrap;
+    }}
+
+    /* Account-details row list (user dashboard) */
+    .d-row {{
+        display: flex; align-items: center; gap: 12px; padding: 12px 0;
+        border-bottom: 1px solid {COLORS['border']};
+    }}
+    .d-row:last-child {{ border-bottom: none; }}
+    .d-row .ic {{
+        width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+        background: {COLORS['bg_card_alt']}; display: flex; align-items: center;
+        justify-content: center; font-size: 15px;
+    }}
+    .d-row .lb {{ font-size: 11px; color: {COLORS['text_muted']}; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }}
+    .d-row .vl {{ font-size: 14px; color: {COLORS['text_heading']}; font-weight: 600; }}
 
     .stAlert {{ border-radius: 12px !important; }}
 </style>
@@ -356,7 +409,7 @@ def send_otp_email(to_email: str, otp: str):
 DEFAULTS = {
     "token": None, "role": None, "page": "Login",
     "forgot_method": None, "forgot_username": None, "forgot_email": None,
-    "forgot_stage": "start", "otp_token": None,
+    "forgot_stage": "start", "otp_token": None, "dev_otp_preview": None,
 }
 for k, v in DEFAULTS.items():
     st.session_state.setdefault(k, v)
@@ -497,17 +550,8 @@ if not st.session_state.token:
                     </div>
                     """, unsafe_allow_html=True)
                     if st.button("Use Email OTP", key="pick_otp"):
-                        if not EMAIL_ADDRESS or not EMAIL_PASSWORD:
-                            st.error(
-                                "❌ Email OTP isn't configured on this server yet — "
-                                "`EMAIL_ADDRESS` / `EMAIL_PASSWORD` aren't set. "
-                                "Add them to Colab Secrets and make sure the launch "
-                                "cell passes them to the Streamlit subprocess as "
-                                "environment variables."
-                            )
-                        else:
-                            st.session_state.forgot_method = "otp"
-                            st.rerun()
+                        st.session_state.forgot_method = "otp"
+                        st.rerun()
 
             elif st.session_state.forgot_method == "sq":
                 uname = st.text_input("Username", placeholder="jane_doe")
@@ -538,20 +582,34 @@ if not st.session_state.token:
                         st.error("❌ Email not registered.")
                     else:
                         otp = generate_otp()
-                        with st.spinner("Sending OTP..."):
-                            ok, msg = send_otp_email(email.strip(), otp)
-                        if ok:
-                            st.session_state.forgot_email = email.strip().lower()
-                            st.session_state.otp_token = make_otp_token(email.strip().lower(), otp)
-                            st.session_state.forgot_stage = "verify"
-                            st.success("✅ OTP sent — check your inbox (and spam folder).")
-                            time.sleep(1)
+                        st.session_state.forgot_email = email.strip().lower()
+                        st.session_state.otp_token = make_otp_token(email.strip().lower(), otp)
+                        st.session_state.forgot_stage = "verify"
+
+                        if not EMAIL_ADDRESS or not EMAIL_PASSWORD:
+                            # Email isn't configured yet — don't dead-end the test.
+                            # Show the OTP directly so the flow can still be verified.
+                            st.session_state.dev_otp_preview = otp
                             st.rerun()
                         else:
-                            st.error(f"❌ Couldn't send the OTP. Details: {msg}")
+                            with st.spinner("Sending OTP..."):
+                                ok, msg = send_otp_email(email.strip(), otp)
+                            if ok:
+                                st.session_state.dev_otp_preview = None
+                                st.success("✅ OTP sent — check your inbox (and spam folder).")
+                                time.sleep(1)
+                                st.rerun()
+                            else:
+                                # Sending failed — still let them continue and test,
+                                # but surface the OTP so they aren't stuck.
+                                st.session_state.dev_otp_preview = otp
+                                st.warning(f"⚠️ Couldn't email the OTP ({msg}). Showing it below so you can still test.")
+                                time.sleep(1.5)
+                                st.rerun()
                 with st.container(key="ghost_back_otp"):
                     if st.button("← Choose a different method", key="back_from_otp"):
                         st.session_state.forgot_method = None
+                        st.session_state.dev_otp_preview = None
                         st.rerun()
 
         elif st.session_state.forgot_stage == "verify":
@@ -569,6 +627,18 @@ if not st.session_state.token:
                         st.error("❌ Incorrect answer.")
             else:
                 st.info(f"📧 Code sent to {st.session_state.forgot_email} (valid {OTP_EXPIRY_MINUTES} min).")
+                if st.session_state.dev_otp_preview:
+                    st.markdown(f"""
+                    <div class="pn-card" style="text-align:center;border:1.5px dashed {COLORS['accent']};">
+                        <div style="font-size:12px;color:{COLORS['text_muted']};font-weight:700;letter-spacing:0.5px;">
+                            🧪 TESTING MODE — EMAIL NOT CONFIGURED, HERE'S YOUR CODE
+                        </div>
+                        <div style="font-size:28px;font-weight:800;letter-spacing:6px;color:{COLORS['accent']};margin-top:6px;">
+                            {st.session_state.dev_otp_preview}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    st.write("")
                 otp_in = st.text_input("6-digit OTP", max_chars=6, placeholder="e.g. 849201")
                 if st.button("Verify →"):
                     if not otp_in.strip():
@@ -577,6 +647,7 @@ if not st.session_state.token:
                         ok, msg = verify_otp_token(st.session_state.otp_token, otp_in.strip(), st.session_state.forgot_email)
                         if ok:
                             st.session_state.forgot_stage = "reset"
+                            st.session_state.dev_otp_preview = None
                             st.rerun()
                         else:
                             st.error("❌ " + msg)
@@ -607,6 +678,7 @@ if not st.session_state.token:
             if st.button("← Cancel"):
                 st.session_state.forgot_stage = "start"
                 st.session_state.forgot_method = None
+                st.session_state.dev_otp_preview = None
                 goto("Login")
 
 # ════════════════════════════════════════════════════════════════
@@ -661,15 +733,40 @@ else:
             <div class="lbl">SYSTEM STATUS</div>
         </div>""", unsafe_allow_html=True)
 
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.write("")
         if users:
-            st.dataframe(
-                [{"Username": u, "Email": e, "Joined (UTC)": c} for u, e, c in users],
-                use_container_width=True, hide_index=True,
-            )
+            search = st.text_input("Search users", placeholder="🔎 Search by username or email", label_visibility="collapsed")
+            q = search.strip().lower()
+            filtered = [
+                (u, e, c) for u, e, c in users
+                if not q or q in u.lower() or q in e.lower()
+            ]
+
+            rows_html = ""
+            for u, e, c in filtered:
+                ini = "".join([w[0] for w in u.replace(".", " ").replace("_", " ").split()][:2]).upper() or u[:2].upper()
+                joined = c.split("T")[0] if "T" in c else c
+                rows_html += f"""
+                <div class="u-row">
+                    <div class="u-avatar">{ini}</div>
+                    <div>
+                        <div class="u-name">{u}</div>
+                        <div class="u-email">{e}</div>
+                    </div>
+                    <div class="u-joined">Joined {joined}</div>
+                </div>"""
+
+            if filtered:
+                st.markdown(f'<div class="u-table">{rows_html}</div>', unsafe_allow_html=True)
+            else:
+                st.info("No users match that search.")
         else:
             st.info("No users have registered yet.")
     else:
+        user_row = db.get_user_by_username(who)
+        email = user_row[2] if user_row else "—"
+        sec_q = user_row[4] if user_row else "—"
+
         st.markdown(f"""
         <div class="dash-banner">
             <div>
@@ -697,10 +794,29 @@ else:
             </div>
             """, unsafe_allow_html=True)
 
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.write("")
         st.markdown(f"""
         <div class="pn-card">
-            <p style="margin:0;">You're securely logged in via a signed JWT session token.
+            <div style="font-weight:700;font-size:15px;margin-bottom:6px;">Account details</div>
+            <div class="d-row">
+                <div class="ic">👤</div>
+                <div><div class="lb">Username</div><div class="vl">{who}</div></div>
+            </div>
+            <div class="d-row">
+                <div class="ic">✉️</div>
+                <div><div class="lb">Email</div><div class="vl">{email}</div></div>
+            </div>
+            <div class="d-row">
+                <div class="ic">❓</div>
+                <div><div class="lb">Security question</div><div class="vl">{sec_q}</div></div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.write("")
+        st.markdown(f"""
+        <div class="pn-card">
+            <p style="margin:0;">🔒 You're securely logged in via a signed JWT session token.
             Nothing about your password is stored anywhere except as a one-way hash.</p>
         </div>
         """, unsafe_allow_html=True)
