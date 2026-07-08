@@ -52,6 +52,13 @@ with all secrets kept out of the codebase.
 | `NGROK_AUTHTOKEN` | Authenticates the ngrok tunnel        |
 | `EMAIL_ADDRESS`   | Gmail address that sends OTP mail     |
 | `EMAIL_PASSWORD`  | Gmail App Password (16 characters)    |
+| `ADMIN_USERNAME`  | Admin login username (Step 11)        |
+| `ADMIN_PASSWORD`  | Admin login password (Step 11)        |
+
+If `ADMIN_USERNAME`/`ADMIN_PASSWORD` aren't set, the app falls back to
+`admin` / `Admin@123` for local testing only — it shows a warning on the
+Admin Login tab whenever this fallback is active, as a reminder to set
+real values before deploying anywhere beyond your own testing.
 
 ## How to run (Google Colab)
 
@@ -65,3 +72,12 @@ with all secrets kept out of the codebase.
    defined as a constant at the top of `app.py` — change it before any
    real deployment.
 
+## Screenshots
+
+- Login — `screenshots/login.png`
+- Signup — `screenshots/signup.png`
+- Forgot Password (Security Question) — `screenshots/forgot_sq.png`
+- Forgot Password (OTP) — `screenshots/forgot_otp.png`
+- OTP email received — `screenshots/otp_email.png`
+- User Dashboard — `screenshots/user_dashboard.png`
+- Admin Dashboard — `screenshots/admin_dashboard.png`
