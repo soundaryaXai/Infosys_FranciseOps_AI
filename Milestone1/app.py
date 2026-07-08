@@ -2,15 +2,6 @@
 app.py — Infosys Springboard Internship 7.0, Milestone 1
 User Authentication Module (Streamlit + JWT + Gmail OTP)
 
-Secrets expected as environment variables (set these from Colab Secrets
-before launching this app — see the notebook launch cell):
-    JWT_SECRET      -> signs session + OTP tokens
-    EMAIL_ADDRESS   -> Gmail address that sends OTP mail
-    EMAIL_PASSWORD  -> the 16-character Gmail App Password
-
-Admin login is separate from the signup system (Step 11): the admin
-credentials are constants below, not a row in the users table.
-CHANGE THESE before you ever deploy this somewhere real.
 """
 
 import os
@@ -37,9 +28,14 @@ EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD", "")
 OTP_EXPIRY_MINUTES = 5
 SESSION_HOURS = 2
 
-# Hardcoded admin login — deliberately NOT a signup account (Step 11).
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "Admin@123"
+# Admin login is separate from the signup system (Step 11) — it is never
+# a row in the users table. Credentials come from environment variables
+# (set ADMIN_USERNAME / ADMIN_PASSWORD in Colab Secrets, same as the other
+# secrets) so nothing sensitive is hardcoded in this file. The fallbacks
+# below only exist so the app still runs during local testing — replace
+# them via secrets before this ever goes near a real deployment.
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "Admin@123")
 
 SECURITY_QUESTIONS = [
     "What is your pet's name?",
@@ -476,6 +472,12 @@ if not st.session_state.token:
                     goto("Forgot")
 
         with tab_admin:
+            if os.environ.get("ADMIN_USERNAME") is None or os.environ.get("ADMIN_PASSWORD") is None:
+                st.warning(
+                    "⚠️ `ADMIN_USERNAME`/`ADMIN_PASSWORD` aren't set — using the "
+                    "built-in defaults. Set both as Colab Secrets and pass them to "
+                    "the app before this goes anywhere real."
+                )
             a_user = st.text_input("Admin Username", key="admin_uid", placeholder="admin")
             a_pwd = st.text_input("Admin Password", type="password", key="admin_pwd", placeholder="••••••••")
             if st.button("Admin Sign In →", key="admin_login_btn"):
