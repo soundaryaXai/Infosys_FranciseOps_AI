@@ -74,6 +74,9 @@ real values before deploying anywhere beyond your own testing.
 
 ## Screenshots
 
+_Add screenshots to a `screenshots/` folder inside this directory and
+reference them below:_
+
 - Login — `screenshots/login.png`
 - Signup — `screenshots/signup.png`
 - Forgot Password (Security Question) — `screenshots/forgot_sq.png`
