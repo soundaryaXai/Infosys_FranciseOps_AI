@@ -101,10 +101,6 @@ values before deploying anywhere beyond your own testing.
   <em>Forgot Password — Security Question</em>
 </p>
 
-<p align="center">
-  <img src="screenshots/forgot_otp.png" width="420" alt="Forgot Password — Email OTP"><br>
-  <em>Forgot Password — Email OTP</em>
-</p>
 
 <p align="center">
   <img src="screenshots/otp_email.jpeg" width="420" alt="OTP email received"><br>
