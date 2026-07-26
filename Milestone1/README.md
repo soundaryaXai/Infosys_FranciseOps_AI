@@ -92,7 +92,7 @@ values before deploying anywhere beyond your own testing.
 </p>
 
 <p align="center">
-  <img src="screenshots/signup.png" width="420" alt="Signup page"><br>
+  <img src="screenshots/signin.png" width="420" alt="Signup page"><br>
   <em>Signup</em>
 </p>
 
