@@ -1,0 +1,15 @@
+streamlit
+streamlit-option-menu
+pyjwt
+bcrypt
+numpy
+pandas
+plotly
+scikit-learn
+joblib
+kagglehub
+transformers
+accelerate
+bitsandbytes
+torch
+pyngrok
