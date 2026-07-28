@@ -154,7 +154,7 @@ without a GPU or live Kaggle/HuggingFace access:
 ## Screenshots
 
 <p align="center">
-  <img src="screenshots/home.png" width="420" alt="Home page"><br>
+  <img src="screenshots/homepage.png" width="420" alt="Home page"><br>
   <em>Home page</em>
 </p>
 
