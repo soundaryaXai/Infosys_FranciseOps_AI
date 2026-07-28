@@ -180,5 +180,5 @@ without a GPU or live Kaggle/HuggingFace access:
 
 <p align="center">
   <img src="screenshots/lockout_and_cooldown.png" width="420" alt="Lockout and OTP cooldown messages"><br>
-  <em>Triggered lockout message and OTP cooldown message</em>
+  <em>Triggered lockout message</em>
 </p>
